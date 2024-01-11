@@ -13,7 +13,7 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
-import { setDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { handleChangeUser } from "../Redux/AuthSlice";
 import { useDispatch } from "react-redux";
 
@@ -85,7 +85,8 @@ const Signup = () => {
               photoURL: url,
             });
             //store user
-            await setDoc(db, "users", user?.uid, {
+            await setDoc(doc(db, "users", user?.uid), {
+              uid: user.uid,
               name: user.displayName,
               email,
               photoURL: url,
