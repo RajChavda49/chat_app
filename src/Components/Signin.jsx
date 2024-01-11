@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
@@ -11,12 +11,17 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 import { auth, goolgeProvider } from "../firebase/firebase";
+import { useDispatch, useSelector } from "react-redux";
+import { handleChangeUser } from "../Redux/AuthSlice";
 
 const Signin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const { user } = useSelector((s) => s.auth);
+
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const signinschema = yup.object().shape({
     email: yup.string().email().required("email is required").trim(),
@@ -26,7 +31,6 @@ const Signin = () => {
   const {
     register,
     handleSubmit,
-    getValues,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -44,7 +48,10 @@ const Signin = () => {
       if (user.emailVerified) {
         window.localStorage.setItem("user", JSON.stringify(user));
         toast.success("Login successfully.");
+        dispatch(handleChangeUser(user));
         setLoading(false);
+        navigate("/");
+        window.location.reload();
       } else {
         setLoading(false);
         toast.error("please verfiy your email.");
@@ -59,10 +66,20 @@ const Signin = () => {
     try {
       const { user } = await signInWithPopup(auth, goolgeProvider);
       window.localStorage.setItem("user", JSON.stringify(user));
+      dispatch(handleChangeUser(user));
+      setLoading(false);
+      navigate("/");
     } catch (error) {
       toast.error(error.message);
     }
   };
+  useEffect(() => {
+    if (user === null) {
+      navigate("/auth");
+    } else {
+      navigate("/");
+    }
+  }, [user]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 w-full">
@@ -104,7 +121,6 @@ const Signin = () => {
         type="button"
         onClick={() => handleSigninWithGoogle()}
         className="uppercase w-full bg-blue-500 rounded-lg p-2 text-white font-semibold transition active:scale-95 hover:bg-blue-700"
-        // disabled={loading}
       >
         Sign in with google
       </button>

@@ -5,23 +5,26 @@ import { useForm } from "react-hook-form";
 // import { postUrl } from "../baseurl";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { auth, db, storage } from "../firebase/firebase";
+import { auth, db, goolgeProvider, storage } from "../firebase/firebase";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
+  signInWithPopup,
   updateProfile,
 } from "firebase/auth";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { setDoc } from "firebase/firestore";
+import { handleChangeUser } from "../Redux/AuthSlice";
+import { useDispatch } from "react-redux";
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const signupschema = yup.object().shape({
-    //     name: yup.string().required("name is required").trim(),
     email: yup.string().email().required("email is required").trim(),
     password: yup
       .string()
@@ -41,10 +44,6 @@ const Signup = () => {
       .test("fileType", "Unsupported File Format", (value) => {
         return value && value[0]?.type.includes("png", "jpg", "jpeg", "gif");
       }),
-    //     confirmPassword: yup
-    //       .string()
-    //       .required("Confirm password is required")
-    //       .oneOf([yup.ref("password"), null], "Password not match with password"),
   });
 
   const {
@@ -99,23 +98,26 @@ const Signup = () => {
       await sendEmailVerification(user);
       setLoading(false);
       toast.success("User signed up successfully! Verification email sent.");
+      await dispatch(handleChangeUser(user));
+      setLoading(false);
+      navigate("/");
     } catch (error) {
       toast.error(error.message);
       setLoading(false);
     }
   };
 
+  const handleSigninWithGoogle = async () => {
+    try {
+      const { user } = await signInWithPopup(auth, goolgeProvider);
+      window.localStorage.setItem("user", JSON.stringify(user));
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 w-full">
-      {/* <input
-        type="text"
-        placeholder="Enter your name"
-        className=" w-full p-2 outline-none bg-white focus:ring-2 ring-green-400 rounded-lg"
-        {...register("name")}
-      />
-      <span className="text-red-500 font-semibold capitalize">
-        {errors?.name?.message}
-      </span> */}
       <input
         type="email"
         placeholder="Enter your email"
@@ -159,6 +161,13 @@ const Signup = () => {
         disabled={loading}
       >
         {loading ? "Signing up..." : "Sign up"}
+      </button>
+      <button
+        type="button"
+        onClick={() => handleSigninWithGoogle()}
+        className="uppercase w-full bg-blue-500 rounded-lg p-2 text-white font-semibold transition active:scale-95 hover:bg-blue-700"
+      >
+        Sign in with google
       </button>
     </form>
   );
