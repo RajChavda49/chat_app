@@ -13,6 +13,7 @@ import {
 import { auth, goolgeProvider } from "../firebase/firebase";
 import { useDispatch, useSelector } from "react-redux";
 import { handleChangeUser } from "../Redux/AuthSlice";
+import { FcGoogle } from "react-icons/fc";
 
 const Signin = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -46,7 +47,6 @@ const Signin = () => {
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
       if (user.emailVerified) {
-        window.localStorage.setItem("user", JSON.stringify(user));
         toast.success("Login successfully.");
         dispatch(handleChangeUser(user));
         setLoading(false);
@@ -65,14 +65,15 @@ const Signin = () => {
   const handleSigninWithGoogle = async () => {
     try {
       const { user } = await signInWithPopup(auth, goolgeProvider);
-      window.localStorage.setItem("user", JSON.stringify(user));
       dispatch(handleChangeUser(user));
       setLoading(false);
+      toast.success("Login successfully.");
       navigate("/");
     } catch (error) {
       toast.error(error.message);
     }
   };
+
   useEffect(() => {
     if (user === null) {
       navigate("/auth");
@@ -120,9 +121,10 @@ const Signin = () => {
       <button
         type="button"
         onClick={() => handleSigninWithGoogle()}
-        className="uppercase w-full bg-blue-500 rounded-lg p-2 text-white font-semibold transition active:scale-95 hover:bg-blue-700"
+        className="uppercase w-full bg-white rounded-lg p-2 text-blue-500 font-semibold transition active:scale-95"
       >
-        Sign in with google
+        <FcGoogle className="h-6 w-6 inline-block mr-2" />
+        <span>Sign in with google</span>
       </button>
     </form>
   );

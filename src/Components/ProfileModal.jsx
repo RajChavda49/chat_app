@@ -1,8 +1,6 @@
 import React, { memo, useEffect, useRef } from "react";
-// import { ChatState } from "../context/ChatProvider";
 import { AiOutlineClose } from "react-icons/ai";
 import { useSelector } from "react-redux";
-// import { BaseUrl } from "../baseurl";
 
 const ProfileModal = ({ setShowProfileModal, showProfileModal }) => {
   const { user } = useSelector((s) => s.auth);
@@ -45,13 +43,15 @@ const ProfileModal = ({ setShowProfileModal, showProfileModal }) => {
           onClick={() => setShowProfileModal(false)}
         />
 
-        {/* <img
-        //   src={BaseUrl.concat(user?.pic)}
+        <img
+          src={user?.photoURL}
           alt="user"
           className="border rounded-full h-20 w-20 object-contain object-center mx-auto"
-        /> */}
+        />
 
-        <p className="text-2xl font-semibold text-center">{user?.name}</p>
+        <p className="text-2xl font-semibold text-center">
+          {user?.displayName}
+        </p>
         <p className="font-semibold text-lg text-center">{user?.email}</p>
       </div>
     </>

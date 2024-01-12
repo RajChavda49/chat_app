@@ -16,6 +16,7 @@ import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { doc, setDoc } from "firebase/firestore";
 import { handleChangeUser } from "../Redux/AuthSlice";
 import { useDispatch } from "react-redux";
+import { FcGoogle } from "react-icons/fc";
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -63,47 +64,54 @@ const Signup = () => {
     const { password, email, pic } = data;
     setLoading(true);
     try {
-      // Create user account
+      toast.loading("Creating account...");
+      //Create user
       const { user } = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
-      const storageRef = ref(storage, pic[0]?.name);
 
-      const uploadTask = uploadBytesResumable(storageRef, pic[0]);
-
-      uploadTask.on(
-        (error) => {
-          console.error(error.message);
-          toast.error(error.message);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then(async (url) => {
+      //Create a unique image name
+      const date = new Date().getTime();
+      const storageRef = ref(storage, `${user?.displayName + date}`);
+      toast.remove();
+      toast.loading("Uploading image...");
+      await uploadBytesResumable(storageRef, pic[0]).then(() => {
+        getDownloadURL(storageRef).then(async (downloadURL) => {
+          try {
+            //Update profile
             await updateProfile(user, {
-              displayName: user.displayName,
-              photoURL: url,
+              displayName: user?.displayName,
+              photoURL: downloadURL,
             });
-            //store user
-            await setDoc(doc(db, "users", user?.uid), {
+            //create user on firestore
+            await setDoc(doc(db, "users", user.uid), {
               uid: user.uid,
-              name: user.displayName,
+              displayName: user?.displayName,
               email,
-              photoURL: url,
+              photoURL: downloadURL,
             });
-          });
-        }
-      );
 
-      // Send email verification
-      await sendEmailVerification(user);
-      setLoading(false);
-      toast.success("User signed up successfully! Verification email sent.");
-      await dispatch(handleChangeUser(user));
-      setLoading(false);
-      navigate("/");
-    } catch (error) {
-      toast.error(error.message);
+            //create empty user chats on firestore
+            await setDoc(doc(db, "userChats", user.uid), {});
+            // Send email verification
+            await sendEmailVerification(user);
+            setLoading(false);
+            toast.success(
+              "User signed up successfully! Verification email sent."
+            );
+            dispatch(handleChangeUser(user));
+            setLoading(false);
+          } catch (err) {
+            toast.error(err.message);
+            console.log(err.message);
+            setLoading(false);
+          }
+        });
+      });
+    } catch (err) {
+      toast.error(err.message);
       setLoading(false);
     }
   };
@@ -111,7 +119,19 @@ const Signup = () => {
   const handleSigninWithGoogle = async () => {
     try {
       const { user } = await signInWithPopup(auth, goolgeProvider);
-      window.localStorage.setItem("user", JSON.stringify(user));
+      //create user on firestore
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        displayName: user?.displayName,
+        email: user?.email,
+        photoURL: user?.photoURL,
+      });
+      //create empty user chats on firestore
+      await setDoc(doc(db, "userChats", user.uid), {});
+      dispatch(handleChangeUser(user));
+      setLoading(false);
+      toast.success("Login successfully.");
+      navigate("/");
     } catch (error) {
       toast.error(error.message);
     }
@@ -166,9 +186,10 @@ const Signup = () => {
       <button
         type="button"
         onClick={() => handleSigninWithGoogle()}
-        className="uppercase w-full bg-blue-500 rounded-lg p-2 text-white font-semibold transition active:scale-95 hover:bg-blue-700"
+        className="uppercase w-full bg-white rounded-lg p-2 text-blue-500 font-semibold transition active:scale-95"
       >
-        Sign in with google
+        <FcGoogle className="h-6 w-6 inline-block mr-2" />
+        <span>Sign in with google</span>
       </button>
     </form>
   );
