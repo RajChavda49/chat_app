@@ -98,10 +98,11 @@ const Signup = () => {
             // Send email verification
             await sendEmailVerification(user);
             setLoading(false);
+            toast.remove()
             toast.success(
               "User signed up successfully! Verification email sent."
             );
-            dispatch(handleChangeUser(user));
+            // dispatch(handleChangeUser(user));
             setLoading(false);
           } catch (err) {
             toast.error(err.message);

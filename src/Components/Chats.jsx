@@ -121,6 +121,7 @@ const Chats = ({ setSelectedChat }) => {
           },
           [combinedId + ".date"]: serverTimestamp(),
         });
+
         toast.remove();
       }
     } catch (err) {
@@ -128,7 +129,6 @@ const Chats = ({ setSelectedChat }) => {
       toast.error(err.message, { style: { wordBreak: "break-all" } });
       console.log(err.message);
     }
-
     setSearchUserData(null);
     setSearchTerm("");
   };
@@ -147,7 +147,9 @@ const Chats = ({ setSelectedChat }) => {
     };
   }, [user?.uid]);
 
-  console.log(loading, searchLoading);
+  // console.log(loading, searchLoading);
+  // console.log(searchUserData);
+  // console.log(chats);
 
   return (
     <>
@@ -294,7 +296,7 @@ const Chats = ({ setSelectedChat }) => {
               ))
           ) : (
             <div className="font-medium text-lg text-center text-gray-400">
-              Create your chat.
+              No chat here.
             </div>
           )}
         </div>
