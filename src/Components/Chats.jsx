@@ -65,7 +65,6 @@ const Chats = ({ setSelectedChat }) => {
   };
 
   const handleSearchUser = async () => {
-
     toast.remove();
     if (searchTerm === "") {
       searchRef.current.focus();
@@ -137,7 +136,9 @@ const Chats = ({ setSelectedChat }) => {
   useEffect(() => {
     setLoading(true);
     const unsub = onSnapshot(doc(db, "userChats", user?.uid), (doc) => {
-      setChats(Object.entries(doc.data()));
+      if (doc.data()) {
+        setChats(Object.entries(doc.data()));
+      }
       setLoading(false);
     });
 
@@ -145,6 +146,8 @@ const Chats = ({ setSelectedChat }) => {
       unsub();
     };
   }, [user?.uid]);
+
+  console.log(loading, searchLoading);
 
   return (
     <>
@@ -207,10 +210,7 @@ const Chats = ({ setSelectedChat }) => {
           </div>
           <hr />
           {/* search */}
-          <div
-            // onSubmit={(e) => handleSearchUser(e)}
-            className="w-full relative flex items-center justify-between bg-gray-100 rounded-lg"
-          >
+          <div className="w-full relative flex items-center justify-between bg-gray-100 rounded-lg">
             <input
               type="text"
               placeholder="search with name"
