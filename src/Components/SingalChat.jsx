@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import {
   Timestamp,
   arrayUnion,
+  collection,
   doc,
   onSnapshot,
   serverTimestamp,
@@ -23,15 +24,6 @@ const SingalChat = ({ selectedChat }) => {
   const { user } = useSelector((s) => s.auth);
 
   const newRef = useRef(null);
-
-  useEffect(() => {
-    const unsub = onSnapshot(doc(db, "chats", selectedChat[0]), (doc) => {
-      doc.exists() && setMessages(doc.data().messages);
-    });
-    return () => {
-      unsub();
-    };
-  }, [selectedChat]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -88,6 +80,15 @@ const SingalChat = ({ selectedChat }) => {
       });
     }
   };
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, "chats", selectedChat[0]), (doc) => {
+      doc.exists() && setMessages(doc.data().messages);
+    });
+    return () => {
+      unsub();
+    };
+  }, [selectedChat]);
 
   useEffect(() => {
     newRef.current?.scrollIntoView({ behavior: "smooth" });

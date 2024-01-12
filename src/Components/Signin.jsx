@@ -10,10 +10,11 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
 } from "firebase/auth";
-import { auth, goolgeProvider } from "../firebase/firebase";
+import { auth, db, goolgeProvider } from "../firebase/firebase";
 import { useDispatch, useSelector } from "react-redux";
 import { handleChangeUser } from "../Redux/AuthSlice";
 import { FcGoogle } from "react-icons/fc";
+import { doc, setDoc } from "firebase/firestore";
 
 const Signin = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -65,6 +66,15 @@ const Signin = () => {
   const handleSigninWithGoogle = async () => {
     try {
       const { user } = await signInWithPopup(auth, goolgeProvider);
+      //create user on firestore
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        displayName: user?.displayName,
+        email: user?.email,
+        photoURL: user?.photoURL,
+      });
+      //create empty user chats on firestore
+      await setDoc(doc(db, "userChats", user.uid), {});
       dispatch(handleChangeUser(user));
       setLoading(false);
       toast.success("Login successfully.");

@@ -7,7 +7,7 @@ import {
   AiOutlineSearch,
   AiOutlineUser,
 } from "react-icons/ai";
-import { FaUserCircle } from "react-icons/fa";
+import { FaSearch, FaUserCircle } from "react-icons/fa";
 import ProfileModal from "./ProfileModal";
 import { useNavigate } from "react-router-dom";
 import SkeletonLoading from "./SkeletonLoading";
@@ -26,6 +26,7 @@ import {
   getDoc,
   onSnapshot,
 } from "firebase/firestore";
+import { IoIosSearch } from "react-icons/io";
 
 const Chats = ({ setSelectedChat }) => {
   const [chats, setChats] = useState([]);
@@ -63,13 +64,13 @@ const Chats = ({ setSelectedChat }) => {
     }
   };
 
-  const handleSearchUser = async (e) => {
+  const handleSearchUser = async () => {
+
     toast.remove();
     if (searchTerm === "") {
       searchRef.current.focus();
       return toast.error("enter word");
     }
-    e.preventDefault();
     setSearchLoading(true);
     const q = query(
       collection(db, "users"),
@@ -151,11 +152,7 @@ const Chats = ({ setSelectedChat }) => {
         showProfileModal={showProfileModal}
         setShowProfileModal={setShowProfileModal}
       />
-      {/*
-      <CreateGroupChatModal
-        showCreateGroupChatModal={showCreateGroupChatModal}
-        setShowCreateGroupChatModal={setShowCreateGroupChatModal}
-      /> */}
+
       <div className="lg:w-1/3 lg:block hidden min-h-[90vh] max-h-[90vh] space-y-4">
         <div className="sticky top-0 space-y-4 bg-white pb-1">
           <div className="flex items-center justify-between">
@@ -210,19 +207,24 @@ const Chats = ({ setSelectedChat }) => {
           </div>
           <hr />
           {/* search */}
-          <form
-            onSubmit={(e) => handleSearchUser(e)}
-            className="w-full relative"
+          <div
+            // onSubmit={(e) => handleSearchUser(e)}
+            className="w-full relative flex items-center justify-between bg-gray-100 rounded-lg"
           >
             <input
               type="text"
               placeholder="search with name"
-              className="w-full placeholder:text-gray-400 placeholder:font-medium p-2 pr-12 outline-none focus:ring-2 rounded-lg bg-gray-100"
+              className="w-full placeholder:text-gray-400 placeholder:font-medium p-2 pr-12 outline-none focus:ring-2 rounded-lg bg-gray-100 "
               onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => e.code === "Enter" && handleSearchUser()}
               value={searchTerm}
               ref={searchRef}
             />
-          </form>
+            <IoIosSearch
+              onClick={() => handleSearchUser()}
+              className="h-7 w-7 cursor-pointer"
+            />
+          </div>
         </div>
         {/* chats */}
         <div className="overflow-y-scroll md:space-y-1 space-y-2 hide_scrollbar">
